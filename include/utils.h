@@ -6,6 +6,7 @@ static constexpr int ASCII_INT_MIN = '0';
 static constexpr int ASCII_INT_MAX = '9';
 static constexpr int MAX_STR_LENGTH = 255;
 static const char* DATABASE_FILE_DIR = "database/things_list.db";
+enum ThingsType {NOTE, TODOs, EVENT, SHOPPING};
 
 namespace Utils
 {
@@ -16,7 +17,6 @@ namespace Utils
 
 namespace Account
 {
-    std::string findAccount(std::string username);
     bool isLoginSuccessful(std::string username, std::string password);
     bool usernameIsUsed(std::string username);
     int inputNewAccount(std::string name, std::string username, std::string password);

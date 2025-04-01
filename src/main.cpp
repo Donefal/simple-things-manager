@@ -6,6 +6,7 @@
 
 #include "utils.h"
 #include "appReset.h"
+#include "dataManager.h"
 
 int beginAppReset()
 {
@@ -51,7 +52,8 @@ int beginAppReset()
 
 void displayThings(std::string username, std::string date)
 {
-    
+    dataManager dm(username, date);
+
 }
 
 void mainMenu(std::string username)

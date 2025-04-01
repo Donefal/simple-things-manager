@@ -83,8 +83,13 @@ void Utils::log(const std::string& message)
     }    
 }
 
+
+// ------------------------------------------------------------------------------
+// ACCOUNT STUFF
+// ------------------------------------------------------------------------------
+
 // Find account in user_tb. Return password if found, "NULL" if not
-std::string Account::findAccount(std::string username)
+std::string findAccount(std::string username)
 {
     std::string returnString = "NULL";
     sqlite3 *db;
@@ -138,7 +143,7 @@ std::string Account::findAccount(std::string username)
 
 bool Account::isLoginSuccessful(std::string username, std::string password)
 {
-    std::string passwordToCheck = Account::findAccount(username);
+    std::string passwordToCheck = findAccount(username);
     if ((passwordToCheck != "NULL") && (Bcrypt::validatePassword(password, passwordToCheck)))
     {
         return true;
@@ -149,7 +154,7 @@ bool Account::isLoginSuccessful(std::string username, std::string password)
 
 bool Account::usernameIsUsed(std::string username)
 {   
-    return Account::findAccount(username) != "NULL";
+    return findAccount(username) != "NULL";
 }
 
 int Account::inputNewAccount(std::string name, std::string username, std::string password)
