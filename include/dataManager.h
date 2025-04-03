@@ -2,16 +2,17 @@
 
 #include <string>
 #include <array>
+#include "utils.h"
 
-class dataManager
+class DataManager
 {
     private:
         const char* DATABASE_FILE_DIR = "database/things_list.db";
         int user_id;
         std::string date;
     public:
-        dataManager(std::string username, std::string date);
-        ~dataManager();
+        DataManager(std::string username, std::string date);
+        ~DataManager();
 
         // Pull data
         int pullThings_created();

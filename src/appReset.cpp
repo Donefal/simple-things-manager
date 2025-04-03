@@ -1,3 +1,8 @@
+/*
+    TODO: Add a way to reset the database (maybe using filesystem to delete it)
+*/
+
+
 #include "appReset.h"
 
 #include <iostream>

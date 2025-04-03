@@ -44,5 +44,6 @@ CREATE TABLE IF NOT EXISTS shopping_data_tb (
     FOREIGN KEY(things_id) REFERENCES things_tb(things_id)
 );
 
+-- The password is Master123.
 INSERT INTO user_tb (name, username, password) VALUES ('masterName', 'master', '$2a$10$Ye5FNyuXpMMc0MGI.mRTKO55GhvSQCZTDofrXNwOqgpkYGgLKu1mC');
 -- END

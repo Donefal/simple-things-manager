@@ -71,6 +71,44 @@ std::string Utils::userInput_str()
     return input;
 }
 
+bool Utils::userInput_binary()
+{
+    std::array<char, 3> trueChar = {'y', 'Y', '1'};
+    std::array<char, 3> falseChar = {'n', 'N', '0'};
+    std::string input;
+
+    while (true)
+    {
+        std::getline(std::cin, input, '\n');
+
+        if (input.length() > 1)
+        {
+            std::cout << "Input is too long!" << std::endl;
+            continue;
+        }
+
+        for (int i = 0; i < 3; i++)
+        {
+            if (input[0] == trueChar[i])
+            {
+                return true;
+            }
+        }
+        
+        for (int i = 0; i < 3; i++)
+        {
+            if (input[0] == falseChar[i])
+            {
+                return false;
+            }
+        }
+        
+        std::cout << "Choice is not valid!" << std::endl;
+    }
+
+    return false;
+}
+
 
 void Utils::log(const std::string& message)
 {
@@ -213,5 +251,66 @@ int Account::inputNewAccount(std::string name, std::string username, std::string
     sqlite3_close(db);
 
     Utils::log("INFO: New account created successfully");
+    return 0;
+}
+
+
+// ------------------------------------------------------------------------------
+// TEST STUFF
+// ------------------------------------------------------------------------------
+
+bool Testing::insertTestData()
+{
+    sqlite3 *db;
+    int returnCode = sqlite3_open(DATABASE_FILE_DIR, &db);
+    if (returnCode != SQLITE_OK)
+    {
+        Utils::log("ERROR: Failed to open database");
+        return 1;
+    }
+
+    std::ifstream sqlFile("database/test_data.sql");
+    std::stringstream currentQuery;
+    std::string currentLine = "";
+
+    if (!sqlFile.is_open())
+    {
+        Utils::log("ERROR: Can't open SQL starter template");
+    }
+
+    while (true)
+    {
+        std::getline(sqlFile, currentLine, '\n');
+        
+        if (currentLine == "-- END")
+        {
+            Utils::log("INFO: Reading test_data completed");
+            break;
+        } else if (currentLine[0] == '-') { // Ignore comment
+            continue;
+        }
+
+        currentQuery << currentLine << " ";
+
+        // Execute current query
+        char lastChar = currentLine[currentLine.length() - 1];
+        if (lastChar == ';') {
+
+            char *errMsg;
+            returnCode = sqlite3_exec(db, currentQuery.str().c_str(), nullptr, nullptr, &errMsg);
+
+            if (returnCode != SQLITE_OK)
+            {
+                Utils::log("ERROR: Query execution failed: " + (std::string)errMsg);
+                sqlite3_close(db);
+                return 1;
+            } else {
+                currentQuery.str(""); // Clear stringstream
+            }
+        }
+    }
+    
+    sqlite3_close(db);
+    Utils::log("INFO: App Reset Completed");
     return 0;
 }

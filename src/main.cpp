@@ -3,10 +3,13 @@
 #include <conio.h>      // For console control
 #include <stdlib.h>     // For clear screen
 #include <sqlite3.h>    // Access to self contained databases 
+#include <ctime>
+#include <iomanip>
+#include <sstream>
 
 #include "utils.h"
 #include "appReset.h"
-#include "dataManager.h"
+#include "DataManager.h"
 
 int beginAppReset()
 {
@@ -50,38 +53,45 @@ int beginAppReset()
         Select Action
 */
 
-void displayThings(std::string username, std::string date)
+void displayThings(DataManager dm)
 {
-    dataManager dm(username, date);
-
+    dm.pullThings_created();
 }
 
-void mainMenu(std::string username)
+void mainMenu(std::string username, std::string currentDate)
 {
-    std::string date;
+    std::string date = currentDate;
+    DataManager dm(username, date);
 
-    std::cout << "Things List | Today, date" << std::endl;
-    std::cout << "---" << std::endl;
-
-    displayThings(username, date);
-
-    std::cout << "---" << std::endl;
-    std::cout   << "Select Action" << std::endl
-                << "(1) New Things" << std::endl
-                << "(2) Jump to other day" << std::endl
-                << "(3) See All Things" << std::endl
-                << "(4) Log Out" << std::endl;
-    std::cout << "---" << std::endl;
-
+    while (true)
+    {
+        std::cout << "Things List | Today, " << date << std::endl;
+        std::cout << std::endl;
+    
+        displayThings(dm);
+    
+        std::cout << std::endl;
+        std::cout << "---" << std::endl;
+        std::cout   << "Select Action" << std::endl
+                    << "(1) New Things" << std::endl
+                    << "(2) Jump to other day" << std::endl
+                    << "(3) See All Things" << std::endl
+                    << "(4) Log Out" << std::endl;
+        std::cout << "---" << std::endl;
+    
+        getch();
+        break;
+    }
 }
 
 // -----------------------------------------------------------------------------------------------------------------------
 void login()
 {
+    bool loginShouldStop = false;
     std::string usernameInput;
     std::string passwordInput;
 
-    while (true)
+    while (!loginShouldStop)
     {
         std::cout << "Login" << std::endl;
         std::cout << "---" << std::endl;
@@ -92,10 +102,28 @@ void login()
     
         if (Account::isLoginSuccessful(usernameInput, passwordInput))
         {
+            std::stringstream currentDate;
+            std::time_t now = std::time(nullptr);
+            std::tm tm = *std::localtime(&now);
+    
+            currentDate << std::put_time(&tm, "%Y-%m-%d") ;
+
             std::cout << ">> Login Succesfully!" << std::endl;
-            mainMenu(usernameInput);
+            std::cout << "Press anything to continue" << std::endl;
+            getch();
+            system("cls");
+            mainMenu(usernameInput, currentDate.str());
         } else {
             std::cout << ">> Username or password is not valid!" << std::endl;
+            std::cout << "Do you want to try again (y/n): ";
+            
+            bool wantToContinue = Utils::userInput_binary();
+
+            if (wantToContinue) {
+                continue;
+            } else {
+                loginShouldStop = true;
+            }
         }
     }
 }
@@ -144,30 +172,22 @@ void createAccount()
 }
 // -----------------------------------------------------------------------------------------------------------------------
 
-
-
-
-int main()
+void masterAction()
 {
-    std::cout << "| Wellcome to things list |" << std::endl;
-    std::cout << "What would you like to do?" << std::endl;
-    std::cout << "(1) Login" << std::endl;
-    std::cout << "(2) Create new account" << std::endl;
-    std::cout << "(3) Reset Application" << std::endl;
-    std::cout << "(4) Exit Application" << std::endl;
+    std::cout << "PLEASE SELECT WITH CAUTION!" << std::endl;
+    std::cout << "PLEASE SELECT WITH CAUTION!" << std::endl;
+    std::cout << "PLEASE SELECT WITH CAUTION!" << std::endl;
+    std::cout << "---" << std::endl << std::endl;
 
+    std::cout << "Select Action:" << std::endl;
+    std::cout << "(1) App Reset" << std::endl;
+    std::cout << "(2) Insert Test Data" << std::endl;
+    std::cout << "(3) Cancel Action" << std::endl;
+    
 
-    switch (Utils::userInput_choice(3))
+    switch (Utils::userInput_choice(2))
     {
         case 1:
-            system("cls");
-            login();
-            break;
-        case 2:
-            system("cls");  
-            createAccount();
-            break;
-        case 3:
             system("cls");
             if (beginAppReset())
             {
@@ -176,8 +196,57 @@ int main()
                 std::cout << "App reset succeeded" << std::endl;
             }
             break;
+        case 2:
+            system("cls");
+            if (Testing::insertTestData())
+            {
+                std::cout << "Test data insertion failed" << std::endl;
+            } else {
+                std::cout << "Test data insertaion succeed" << std::endl;
+            }
+            break;
+        case 3:
+            return;
         default:
             break;
+    }
+}
+
+
+int main()
+{
+    bool appShouldStop = false;
+
+    while (!appShouldStop)
+    {
+        std::cout << "| Wellcome to things list |" << std::endl;
+        std::cout << "What would you like to do?" << std::endl;
+        std::cout << "(1) Login" << std::endl;
+        std::cout << "(2) Create new account" << std::endl;
+        std::cout << "(3) Master Action" << std::endl;
+        std::cout << "(4) Exit Application" << std::endl;
+
+
+        switch (Utils::userInput_choice(3))
+        {
+            case 1:
+                system("cls");
+                login();
+                break;
+            case 2:
+                system("cls");  
+                createAccount();
+                break;
+            case 3:
+                system("cls");
+                masterAction();
+                break;
+            case 4:
+                system("cls");
+                appShouldStop = true;
+            default:
+                break;
+        }
     }
     
     std::cout << "Application ended.";

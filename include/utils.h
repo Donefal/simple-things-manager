@@ -12,6 +12,7 @@ namespace Utils
 {
     unsigned int userInput_choice(unsigned int maxValue);
     std::string userInput_str();
+    bool userInput_binary();
     void log(const std::string& message);
 }
 
@@ -22,6 +23,10 @@ namespace Account
     int inputNewAccount(std::string name, std::string username, std::string password);
 }
 
+namespace Testing
+{
+    bool insertTestData();
+}
 
 
 
