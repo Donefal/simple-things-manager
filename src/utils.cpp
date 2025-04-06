@@ -7,7 +7,9 @@
 #include <fstream>
 #include <ctime>
 #include <sqlite3.h>
-#include "bcrypt.h"
+
+#include <bcrypt.h>
+
 
 std::ofstream logFile("docs/log.txt");
 
@@ -109,6 +111,49 @@ bool Utils::userInput_binary()
     return false;
 }
 
+
+std::string Utils::userInput_date()
+{
+    std::string input;
+    
+    while (true)
+    {
+        bool interrupt = false;
+        std::getline(std::cin, input, '\n');
+
+        if (input.length() > MAX_STR_LENGTH)
+        {
+            std::cout << "Input is too long!" << std::endl;
+            continue;
+        }
+
+        for (int i = 0; i < input.length(); i++)
+        {
+           if (i+1 % 3 == 0 && input[i] != '-')
+           {
+                interrupt = true;
+                break;
+           } else {
+                int c_int = static_cast<int>(input[i]);
+                if ((c_int < ASCII_INT_MIN && c_int > ASCII_INT_MAX))
+                {
+                    interrupt = true;
+                    break;
+                }
+           }
+        }
+        
+        if (interrupt)
+        {
+            std::cout << "Input is not correct, please try again" << std::endl;
+            continue;
+        }
+        
+        break;
+    }
+
+    return input;
+}
 
 void Utils::log(const std::string& message)
 {
@@ -297,6 +342,7 @@ bool Testing::insertTestData()
         if (lastChar == ';') {
 
             char *errMsg;
+            Utils::log("EXECUTE: " + currentQuery.str());
             returnCode = sqlite3_exec(db, currentQuery.str().c_str(), nullptr, nullptr, &errMsg);
 
             if (returnCode != SQLITE_OK)

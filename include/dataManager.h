@@ -23,5 +23,8 @@ class DataManager
         int inputToDatabase_todo(int id, std::string deadline = "");
         int inputToDatabase_shopping(int id, int quantity, int price);
         int inputToDatabase_base(std::string text = "Edit this", std::string type = "Note");
+
+        // Change data value
+        void changeDate(std::string date);
 };
 

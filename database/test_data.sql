@@ -2,10 +2,11 @@
 PRAGMA foreign_keys = ON;
 
 -- Insert sample users
+-- password123, securepass, test123
 INSERT INTO user_tb (name, username, password) VALUES 
-('John Doe', 'johndoe', '$2a$10$6FvdNuv.tmLMw0EEUNFG1uDXYojOjgjGQ/.IOKRf.ue65QZ2DCwuS'), -- password123
-('Jane Smith', 'janesmith', '$2a$10$YlbaBWbZvbqkAVf6w7jrsun4jtZZivvMkTP8uIXa3mAiKbwsB/PlG'), -- securepass
-('Bob Johnson', 'bjohnson', '$2a$10$hHEH.ICN.L.8NMAfaIDTTObgCKkn66BdJ6Pz5AQbl07ioJxs.CX22'); -- test123
+('John Doe', 'johndoe', '$2a$10$6FvdNuv.tmLMw0EEUNFG1uDXYojOjgjGQ/.IOKRf.ue65QZ2DCwuS'),
+('Jane Smith', 'janesmith', '$2a$10$YlbaBWbZvbqkAVf6w7jrsun4jtZZivvMkTP8uIXa3mAiKbwsB/PlG'),
+('Bob Johnson', 'bjohnson', '$2a$10$hHEH.ICN.L.8NMAfaIDTTObgCKkn66BdJ6Pz5AQbl07ioJxs.CX22');
 
 -- Insert sample notes
 INSERT INTO things_tb (type, things_text, user_id) VALUES

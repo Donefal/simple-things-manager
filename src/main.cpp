@@ -53,18 +53,36 @@ int beginAppReset()
         Select Action
 */
 
+std::string jumpToOtherDay()
+{
+    system("cls");
+    std::cout << "Jump to other day" << std::endl;
+    std::cout << "(Quick action: 'T' for tomorrow || 'Y' yesterday)" << std::endl;
+    std::cout << "Input date (YYYY-MM-DD):";
+    
+    return Utils::userInput_date();
+}
+
 void displayThings(DataManager dm)
 {
+    std::cout << "CREATED ON THIS DAY:" << std::endl;
     dm.pullThings_created();
+    
+    std::cout << std::endl;
+    std::cout << "---" << std::endl;
+    std::cout << "ASSIGNED FOR THIS DAY:" << std::endl;
+    dm.pullThings_assigned();
 }
 
 void mainMenu(std::string username, std::string currentDate)
 {
     std::string date = currentDate;
     DataManager dm(username, date);
+    bool menuShouldClose = false;
 
-    while (true)
+    while (!menuShouldClose)
     {
+        system("cls");
         std::cout << "Things List | Today, " << date << std::endl;
         std::cout << std::endl;
     
@@ -73,18 +91,46 @@ void mainMenu(std::string username, std::string currentDate)
         std::cout << std::endl;
         std::cout << "---" << std::endl;
         std::cout   << "Select Action" << std::endl
-                    << "(1) New Things" << std::endl
-                    << "(2) Jump to other day" << std::endl
-                    << "(3) See All Things" << std::endl
-                    << "(4) Log Out" << std::endl;
+                    << "(1) Do someThings" << std::endl
+                    << "(2) New Things" << std::endl
+                    << "(3) Jump to other day" << std::endl
+                    << "(4) See All Things" << std::endl
+                    << "(5) Log Out" << std::endl;
         std::cout << "---" << std::endl;
+
+        switch (Utils::userInput_choice(5))
+        {
+            case 1:
+                std::cout << "Do someThings" << std::endl;
+                break;
+            case 2:
+                std::cout << "Create new Thing" << std::endl;
+                break;
+            case 3:
+            {
+                std::string newdate = jumpToOtherDay();
+                dm.changeDate(newdate);
+                date = newdate;
+                break;
+            }
+            case 4:
+                std::cout << "See All Things" << std::endl;
+                break;
+            case 5:
+                menuShouldClose = true;
+                break;
+            default:
+                break;
+        }
     
+        std::cout << "Press anything to continue" << std::endl;
         getch();
-        break;
+        
     }
 }
 
 // -----------------------------------------------------------------------------------------------------------------------
+
 void login()
 {
     bool loginShouldStop = false;
@@ -111,8 +157,8 @@ void login()
             std::cout << ">> Login Succesfully!" << std::endl;
             std::cout << "Press anything to continue" << std::endl;
             getch();
-            system("cls");
             mainMenu(usernameInput, currentDate.str());
+
         } else {
             std::cout << ">> Username or password is not valid!" << std::endl;
             std::cout << "Do you want to try again (y/n): ";
@@ -170,6 +216,7 @@ void createAccount()
         break;
     }
 }
+
 // -----------------------------------------------------------------------------------------------------------------------
 
 void masterAction()
@@ -191,7 +238,7 @@ void masterAction()
             system("cls");
             if (beginAppReset())
             {
-                std::cout << "FATAL ERROR: Exiting Program..." << std::endl;
+                std::cout << "Error" << std::endl;
             } else {
                 std::cout << "App reset succeeded" << std::endl;
             }
@@ -200,10 +247,13 @@ void masterAction()
             system("cls");
             if (Testing::insertTestData())
             {
-                std::cout << "Test data insertion failed" << std::endl;
+                std::cout << "=Test data insertion failed" << std::endl;
             } else {
                 std::cout << "Test data insertaion succeed" << std::endl;
             }
+
+            getch();
+            system("cls");
             break;
         case 3:
             return;
@@ -219,7 +269,7 @@ int main()
 
     while (!appShouldStop)
     {
-        std::cout << "| Wellcome to things list |" << std::endl;
+        std::cout << "Welcome to things list" << std::endl;
         std::cout << "What would you like to do?" << std::endl;
         std::cout << "(1) Login" << std::endl;
         std::cout << "(2) Create new account" << std::endl;

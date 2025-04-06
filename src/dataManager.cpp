@@ -204,6 +204,11 @@ int callbackDisplay(void* unused, int columnCount, char** data, char** columnNam
     return 0;
 }
 
+void DataManager::changeDate(std::string date)
+{
+    this->date = date;
+}
+
 int DataManager::pullThings_created()
 {
     sqlite3 *db;
@@ -234,3 +239,59 @@ int DataManager::pullThings_created()
     return 0;
 }   
 
+int DataManager::pullThings_assigned()
+{
+    sqlite3 *db;
+    char *errMsg;
+    int returnCode;
+
+    std::string fkQuery = "PRAGMA foreign_keys = ON;";
+
+    std::string eventQuery =
+        "SELECT type, things_text, things_tb.things_id "
+        "FROM things_tb " 
+        "INNER JOIN event_data_tb "
+        "ON things_tb.things_id = event_data_tb.things_id "
+        "WHERE user_id = '" + std::to_string(user_id) + "' AND date_of_event = '" + date + "';";
+    
+    std::string todoQuery =
+        "SELECT type, things_text, things_tb.things_id "
+        "FROM things_tb " 
+        "INNER JOIN todo_data_tb "
+        "ON things_tb.things_id = todo_data_tb.things_id "
+        "WHERE user_id = '" + std::to_string(user_id) + "' AND deadline = '" + date + "';";
+        
+
+    returnCode = sqlite3_open(DATABASE_FILE_DIR, &db);
+    if (returnCode != SQLITE_OK)
+    {
+        Utils::log("ERROR: Can't open database");
+        return 1;
+    }
+
+    returnCode = sqlite3_exec(db, fkQuery.c_str(), nullptr, nullptr, &errMsg);
+    if (returnCode !=  SQLITE_OK)
+    {
+        Utils::log("ERROR: Query Execution failed: " + (std::string)errMsg);
+        sqlite3_close(db);
+        return 1;
+    }
+
+    returnCode = sqlite3_exec(db, eventQuery.c_str(), callbackDisplay, nullptr, &errMsg);
+    if (returnCode !=  SQLITE_OK)
+    {
+        Utils::log("ERROR: Query Execution failed: " + (std::string)errMsg);
+        sqlite3_close(db);
+        return 1;
+    }
+
+    returnCode = sqlite3_exec(db, eventQuery.c_str(), callbackDisplay, nullptr, &errMsg);
+    if (returnCode !=  SQLITE_OK)
+    {
+        Utils::log("ERROR: Query Execution failed: " + (std::string)errMsg);
+        sqlite3_close(db);
+        return 1;
+    }
+
+    return 0;
+}

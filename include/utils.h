@@ -13,6 +13,8 @@ namespace Utils
     unsigned int userInput_choice(unsigned int maxValue);
     std::string userInput_str();
     bool userInput_binary();
+    std::string userInput_date();
+
     void log(const std::string& message);
 }
 
