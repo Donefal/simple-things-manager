@@ -75,6 +75,10 @@ DataManager::~DataManager()
     Utils::log("INFO: Data Manager destructed");
 }
 
+// ------------------------------------------------------------------------------
+// sqlite3_exec callback
+// ------------------------------------------------------------------------------
+
 int additionalCallback(void* head, int columnCount, char** data, char** columnName)
 {
     std::string* results = static_cast<std::string*>(head);
@@ -140,6 +144,7 @@ int callbackDisplay(void* unused, int columnCount, char** data, char** columnNam
                 return 1;
             }
 
+            Utils::log(additional[0]);
             if (additional[0] == "Listed") {
                 std::cout << "[ ] ";
             } else if (additional[0] == "Done") {
@@ -184,6 +189,7 @@ int callbackDisplay(void* unused, int columnCount, char** data, char** columnNam
                 return 1;
             }
 
+            Utils::log(additional[0]);
             if (additional[0] == "Listed") {
                 std::cout << "( ) ";
             } else if (additional[0] == "Done") {
@@ -192,8 +198,7 @@ int callbackDisplay(void* unused, int columnCount, char** data, char** columnNam
                 std::cout << "(x) ";
             }
 
-            float price = std::stoi(additional[2])/100;
-            std::cout << data[1] << " <Qty: " << additional[1] << "| Rp. " << price << "/pcs>" << std::endl;
+            std::cout << data[1] << " <Qty: " << additional[1] << "| Rp. " << additional[2] << "/pcs>" << std::endl;
             break;
         }
         default:
@@ -204,10 +209,19 @@ int callbackDisplay(void* unused, int columnCount, char** data, char** columnNam
     return 0;
 }
 
+// ------------------------------------------------------------------------------
+// Utils
+// ------------------------------------------------------------------------------
+
+
 void DataManager::changeDate(std::string date)
 {
     this->date = date;
 }
+
+// ------------------------------------------------------------------------------
+// Pull things
+// ------------------------------------------------------------------------------
 
 int DataManager::pullThings_created()
 {
@@ -285,7 +299,7 @@ int DataManager::pullThings_assigned()
         return 1;
     }
 
-    returnCode = sqlite3_exec(db, eventQuery.c_str(), callbackDisplay, nullptr, &errMsg);
+    returnCode = sqlite3_exec(db, todoQuery.c_str(), callbackDisplay, nullptr, &errMsg);
     if (returnCode !=  SQLITE_OK)
     {
         Utils::log("ERROR: Query Execution failed: " + (std::string)errMsg);
@@ -294,4 +308,255 @@ int DataManager::pullThings_assigned()
     }
 
     return 0;
+}
+
+// ------------------------------------------------------------------------------
+// INPUT STUFF
+// ------------------------------------------------------------------------------
+
+int bindParameters_shopping(sqlite3_stmt *stmt, const int &things_id, const int &qty, const int &price)
+{
+    if (sqlite3_bind_int(stmt, 1, things_id) != SQLITE_OK)
+        return 1;
+    if (sqlite3_bind_int(stmt, 2, qty) != SQLITE_OK)
+        return 1;
+    if (sqlite3_bind_int(stmt, 3, price) != SQLITE_OK)
+        return 1;
+
+    return 0;
+}
+
+int bindParameters_todo_event(sqlite3_stmt *stmt, const int &things_id, const std::string &date)
+{
+    if (sqlite3_bind_int(stmt, 1, things_id) != SQLITE_OK)
+        return 1;
+    if (sqlite3_bind_text(stmt, 2, date.c_str(), date.length(), SQLITE_STATIC) != SQLITE_OK)
+        return 1;
+    
+    return 0;
+}
+
+int bindParameters_base(sqlite3_stmt *stmt, const std::string &text, const std::string &type, const int &user_id)
+{
+    if (sqlite3_bind_text(stmt, 1, type.c_str(), type.length(), SQLITE_STATIC) != SQLITE_OK)
+        return 1;
+    if (sqlite3_bind_text(stmt, 2, text.c_str(), text.length(), SQLITE_STATIC) != SQLITE_OK)
+        return 1;
+    if (sqlite3_bind_int(stmt, 3, user_id) != SQLITE_OK)
+        return 1;
+    
+    return 0;
+}
+
+int DataManager::inputToDatabase_shoppingData(int things_id, int quantity, int price)
+{
+    sqlite3 *db;
+    sqlite3_stmt *stmt;
+    char *errMsg;
+    int returnCode;
+
+    const char* fkQuery = "PRAGMA foreign_keys = ON;";
+    const char* query = "INSERT INTO shopping_data_tb (things_id, quantity, price_per_pcs) VALUES (?, ?, ?)";
+
+    returnCode = sqlite3_open(DATABASE_FILE_DIR, &db);
+    if (returnCode != SQLITE_OK)
+    {
+        Utils::log("ERROR: Database can't be opened");
+        return 1;
+    }
+
+    returnCode = sqlite3_exec(db, fkQuery, nullptr, nullptr, &errMsg);
+    if (returnCode != SQLITE_OK)
+    {
+        Utils::log("ERROR: Failed to enable foreign key: " + (std::string)errMsg);
+        sqlite3_close(db);
+        return 1;
+    }
+
+    returnCode = sqlite3_prepare_v3(db, query, -1, SQLITE_PREPARE_PERSISTENT, &stmt, nullptr);
+    if (returnCode != SQLITE_OK)
+    {
+        Utils::log("ERROR: Failed to prepare statement: " + std::string(sqlite3_errmsg(db)));
+        sqlite3_close(db);
+        return 1;
+    }
+
+    returnCode = bindParameters_shopping(stmt, things_id, quantity, price);
+    if (returnCode != SQLITE_OK)
+    {
+        Utils::log("ERROR: Failed to bind parameter: " + std::string(sqlite3_errmsg(db)));
+        sqlite3_close(db);
+        return 1;
+    }
+
+    returnCode = sqlite3_step(stmt);
+    if (returnCode != SQLITE_DONE)
+    {
+        Utils::log("ERROR: Failed to execute statement: " + std::string(sqlite3_errmsg(db)));
+        sqlite3_close(db);
+        return 1;
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    return 0;
+}
+
+int DataManager::inputToDatabase_eventData(int things_id, std::string eventDate)
+{
+    sqlite3 *db;
+    sqlite3_stmt *stmt;
+    char *errMsg;
+    int returnCode;
+
+    const char* fkQuery = "PRAGMA foreign_keys = ON;";
+    const char* query = "INSERT INTO event_data_tb (things_id, date_of_event) VALUES (?, ?)";
+
+    returnCode = sqlite3_open(DATABASE_FILE_DIR, &db);
+    if (returnCode != SQLITE_OK)
+    {
+        Utils::log("ERROR: Database can't be opened");
+        return 1;
+    }
+
+    returnCode = sqlite3_exec(db, fkQuery, nullptr, nullptr, &errMsg);
+    if (returnCode != SQLITE_OK)
+    {
+        Utils::log("ERROR: Failed to enable foreign key: " + (std::string)errMsg);
+        sqlite3_close(db);
+        return 1;
+    }
+
+    returnCode = sqlite3_prepare_v3(db, query, -1, SQLITE_PREPARE_PERSISTENT, &stmt, nullptr);
+    if (returnCode != SQLITE_OK)
+    {
+        Utils::log("ERROR: Failed to prepare statement: " + std::string(sqlite3_errmsg(db)));
+        sqlite3_close(db);
+        return 1;
+    }
+
+    returnCode = bindParameters_todo_event(stmt, things_id, eventDate);
+    if (returnCode != SQLITE_OK)
+    {
+        Utils::log("ERROR: Failed to bind parameter: " + std::string(sqlite3_errmsg(db)));
+        sqlite3_close(db);
+        return 1;
+    }
+
+    returnCode = sqlite3_step(stmt);
+    if (returnCode != SQLITE_DONE)
+    {
+        Utils::log("ERROR: Failed to execute statement: " + std::string(sqlite3_errmsg(db)));
+        sqlite3_close(db);
+        return 1;
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    return 0;
+}
+
+int DataManager::inputToDatabase_todoData(int things_id, std::string deadline)
+{
+    sqlite3 *db;
+    sqlite3_stmt *stmt;
+    char *errMsg;
+    int returnCode;
+
+    const char* fkQuery = "PRAGMA foreign_keys = ON;";
+    const char* query = "INSERT INTO todo_data_tb (things_id, deadline) VALUES (?, ?)";
+
+    returnCode = sqlite3_open(DATABASE_FILE_DIR, &db);
+    if (returnCode != SQLITE_OK)
+    {
+        Utils::log("ERROR: Database can't be opened");
+        return 1;
+    }
+
+    returnCode = sqlite3_exec(db, fkQuery, nullptr, nullptr, &errMsg);
+    if (returnCode != SQLITE_OK)
+    {
+        Utils::log("ERROR: Failed to enable foreign key: " + (std::string)errMsg);
+        sqlite3_close(db);
+        return 1;
+    }
+
+    returnCode = sqlite3_prepare_v3(db, query, -1, SQLITE_PREPARE_PERSISTENT, &stmt, nullptr);
+    if (returnCode != SQLITE_OK)
+    {
+        Utils::log("ERROR: Failed to prepare statement: " + std::string(sqlite3_errmsg(db)));
+        sqlite3_close(db);
+        return 1;
+    }
+
+    returnCode = bindParameters_todo_event(stmt, things_id, deadline);
+    if (returnCode != SQLITE_OK)
+    {
+        Utils::log("ERROR: Failed to bind parameter: " + std::string(sqlite3_errmsg(db)));
+        sqlite3_close(db);
+        return 1;
+    }
+
+    returnCode = sqlite3_step(stmt);
+    if (returnCode != SQLITE_DONE)
+    {
+        Utils::log("ERROR: Failed to execute statement: " + std::string(sqlite3_errmsg(db)));
+        sqlite3_close(db);
+        return 1;
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    return 0;
+}
+
+
+sqlite3_int64 DataManager::inputToDatabase_base(std::string text, std::string type)
+{
+    sqlite3 *db;
+    sqlite3_stmt *stmt;
+    int returnCode;  
+
+    const char* query = "INSERT INTO things_tb (type, things_text, user_id) VALUES (?, ?, ?);";
+
+    returnCode = sqlite3_open(DATABASE_FILE_DIR, &db);
+    if (returnCode != SQLITE_OK)
+    {
+        Utils::log("ERROR: Database can't be opened");
+        return -1;
+    }
+
+    returnCode = sqlite3_prepare_v3(db, query, -1, SQLITE_PREPARE_PERSISTENT, &stmt, nullptr);
+    if (returnCode != SQLITE_OK)
+    {
+        Utils::log("ERROR: Failed to prepare statement: " + std::string(sqlite3_errmsg(db)));
+        sqlite3_close(db);
+        return -1;
+    }
+
+    returnCode = bindParameters_base(stmt, text, type, user_id);
+    if (returnCode != SQLITE_OK)
+    {
+        Utils::log("ERROR: Failed to bind parameter: " + std::string(sqlite3_errmsg(db)));
+        sqlite3_close(db);
+        return -1;
+    }
+
+    returnCode = sqlite3_step(stmt);
+    if (returnCode != SQLITE_DONE)
+    {
+        Utils::log("ERROR: Failed to execute statement: " + std::string(sqlite3_errmsg(db)));
+        sqlite3_close(db);
+        return -1;
+    }
+    
+    sqlite3_int64 new_id = sqlite3_last_insert_rowid(db);
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    return new_id;
 }

@@ -5,6 +5,7 @@
 static constexpr int ASCII_INT_MIN = '0';
 static constexpr int ASCII_INT_MAX = '9';
 static constexpr int MAX_STR_LENGTH = 255;
+static constexpr int MAX_INT_VALUE = 1000000000;
 static const char* DATABASE_FILE_DIR = "database/things_list.db";
 enum ThingsType {NOTE, TODOs, EVENT, SHOPPING};
 

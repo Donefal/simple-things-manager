@@ -29,16 +29,15 @@ CREATE TABLE IF NOT EXISTS event_data_tb (
 -- Create todo data table
 CREATE TABLE IF NOT EXISTS todo_data_tb (
     things_id INTEGER PRIMARY KEY,
-    status TEXT CHECK(status IN ('Listed', 'Done', 'Canceled')),
+    status TEXT CHECK(status IN ('Listed', 'Done', 'Canceled')) NOT NULL DEFAULT ('Listed'),
     deadline TEXT,
     FOREIGN KEY(things_id) REFERENCES things_tb(things_id)
 );
 
 -- Create shopping data table
--- Price are stored in Integer with 2 float point precision
 CREATE TABLE IF NOT EXISTS shopping_data_tb (
     things_id INTEGER PRIMARY KEY,
-    status TEXT CHECK(status IN ('Listed', 'Done', 'Canceled')),
+    status TEXT CHECK(status IN ('Listed', 'Done', 'Canceled')) NOT NULL DEFAULT ('Listed'),
     quantity INTEGER,
     price_per_pcs INTEGER,
     FOREIGN KEY(things_id) REFERENCES things_tb(things_id)

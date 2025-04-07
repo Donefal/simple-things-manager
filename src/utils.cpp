@@ -10,7 +10,6 @@
 
 #include <bcrypt.h>
 
-
 std::ofstream logFile("docs/log.txt");
 
 unsigned int Utils::userInput_choice(unsigned int maxValue)
@@ -27,7 +26,7 @@ unsigned int Utils::userInput_choice(unsigned int maxValue)
         for(const char c : input_str)
         {
             int c_int = static_cast<int>(c);
-            if (c_int < ASCII_INT_MIN && c_int > ASCII_INT_MAX)
+            if (c_int < ASCII_INT_MIN || c_int > ASCII_INT_MAX)
             {
                 interrupt = true;
                 break;
@@ -249,15 +248,6 @@ int Account::inputNewAccount(std::string name, std::string username, std::string
     std::array<std::string, 3> bindValue = {name, username, Bcrypt::generateHash(password)};
     const char* query = "INSERT INTO user_tb (name, username, password) VALUES (?, ?, ?);";
 
-    /*
-        NOTE: SQLite3 Full Flow
-        1. Open database
-        2. Prepare statement
-        3. Bind value
-        4. Evaluate & execute
-        5. Destruct
-    */
-
     // 1. Open Database
     returnCode = sqlite3_open(DATABASE_FILE_DIR, &db);
     if (returnCode != SQLITE_OK)
@@ -266,7 +256,7 @@ int Account::inputNewAccount(std::string name, std::string username, std::string
         return 1;
     }
 
-    // 2. Prepare statement
+    // 2. Prepare statementacc
     returnCode = sqlite3_prepare_v3(db, query, -1, 0, &stmt, nullptr);
     if (returnCode != SQLITE_OK)
     {

@@ -6,6 +6,7 @@
 #include <ctime>
 #include <iomanip>
 #include <sstream>
+#include <vector>
 
 #include "utils.h"
 #include "appReset.h"
@@ -24,35 +25,6 @@ int beginAppReset()
 
 // -----------------------------------------------------------------------------------------------------------------------
 
-/* 
-    TODO: Try to finish this function
-    - Read data from database
-    - Don't forget to enable foreign key
-    - From the type, then read into their respective table 
-
-    IDEA: Symbol for each type 
-    -o- For notes
-    --> For event <Date: >
-    [ ] For todo <Dl: >
-    ( ) For shopping <Q: nn | Rp. nnnn,nn/pcs >
-
-    Split it to two part:
-    
-        Things List | date
-        ---
-        >> CREATED THIS DAY:
-        -o- Lorem ipsum
-        --> Example event
-
-        ---
-        >> ASSIGNED FOR THIS DAY:
-        [ ] Example todo 
-        ( ) Example shopping 
-
-        ---
-        Select Action
-*/
-
 std::string jumpToOtherDay()
 {
     system("cls");
@@ -61,6 +33,111 @@ std::string jumpToOtherDay()
     std::cout << "Input date (YYYY-MM-DD):";
     
     return Utils::userInput_date();
+}
+
+void createNewThing(DataManager dm)
+{
+    ThingsType selectedType;
+    std::string text;
+    sqlite3_int64 newId;
+
+    system("cls");
+    std::cout << "Select type:" << std::endl;
+    std::cout << "(1) Note" << std::endl;
+    std::cout << "(2) Todo" << std::endl;
+    std::cout << "(3) Event" << std::endl;
+    std::cout << "(4) Shopping" << std::endl;
+
+    switch (Utils::userInput_choice(4))
+    {
+        case 1:
+            selectedType = NOTE;
+            break;
+        case 2:
+            selectedType = TODOs;
+            break;
+        case 3:
+            selectedType = EVENT;
+            break;
+        case 4:
+            selectedType = SHOPPING;
+            break;
+        default:
+            break;
+    }
+
+    system("cls");
+    std::cout << "Input text:" << std::endl;
+    text = Utils::userInput_str();
+
+    system("cls");
+    switch (selectedType)
+    {
+        case NOTE:
+            dm.inputToDatabase_base(text, "NOTE");
+            break;
+        case TODOs:
+        {
+            std::string deadline;
+
+            std::cout << "(input '-' if none) (format: YYYY-MM-DD)" << std::endl;
+            std::cout << "Input deadline : " << std::endl;
+            deadline = Utils::userInput_date();
+
+            newId = dm.inputToDatabase_base(text, "TODO");
+
+            if (dm.inputToDatabase_todoData(newId, deadline) == 0)
+            {
+                Utils::log("INFO: New todo input succeed");
+            } else {
+                Utils::log("ERROR: New todo input failed");
+            }
+            
+            break;
+        }
+        case EVENT:
+        {
+            std::string dateOfEvent;
+
+            std::cout << "(input '-' if none) (format: YYYY-MM-DD)" << std::endl;
+            std::cout << "Input date of event : " << std::endl;
+            dateOfEvent = Utils::userInput_date();
+
+            newId = dm.inputToDatabase_base(text, "EVENT");
+
+            if (dm.inputToDatabase_eventData(newId, dateOfEvent) == 0)
+            {
+                Utils::log("INFO: New event input succeed");
+            } else {
+                Utils::log("ERROR: New event input failed");
+            }
+            
+            break;
+        }
+        case SHOPPING:
+        {
+            int qty, price;
+
+            std::cout << "How many? : " << std::endl;
+            qty = Utils::userInput_choice(MAX_INT_VALUE);
+            std::cout << "How much per pcs? : " << std::endl;
+            price = Utils::userInput_choice(MAX_INT_VALUE);
+
+            newId = dm.inputToDatabase_base(text, "SHOPPING");
+
+            if (dm.inputToDatabase_shoppingData(newId, qty, price) == 0)
+            {
+                Utils::log("INFO: New shopping input succeed");
+            } else {
+                Utils::log("ERROR: New shopping input failed");
+            }
+
+            break;
+        }
+        default:
+            break;
+    }
+    
 }
 
 void displayThings(DataManager dm)
@@ -104,7 +181,7 @@ void mainMenu(std::string username, std::string currentDate)
                 std::cout << "Do someThings" << std::endl;
                 break;
             case 2:
-                std::cout << "Create new Thing" << std::endl;
+                createNewThing(dm);
                 break;
             case 3:
             {
@@ -247,7 +324,7 @@ void masterAction()
             system("cls");
             if (Testing::insertTestData())
             {
-                std::cout << "=Test data insertion failed" << std::endl;
+                std::cout << "Test data insertion failed" << std::endl;
             } else {
                 std::cout << "Test data insertaion succeed" << std::endl;
             }
