@@ -3,6 +3,7 @@
 #include <string>
 #include <array>
 #include <sqlite3.h>
+#include <vector>
 
 #include "utils.h"
 
@@ -18,8 +19,8 @@ class DataManager
         ~DataManager();
 
         // Pull data
-        int pullThings_created();
-        int pullThings_assigned();
+        std::vector<int> pullThings_created();
+        std::vector<int> pullThings_assigned();
 
         // Input Function
         int inputToDatabase_eventData(int id, std::string eventDate);
@@ -31,5 +32,13 @@ class DataManager
 
         // Change data value
         void changeDate(std::string date);
+
+        // Do somethings feature
+        int changeThings_type(int id, ThingsType newType);
+        int changeThings_shopping(int id, int newData[2]);
+        int changeThings_TodoEventdate(int id, std::string newDate);
+        int changeThings_status(int id, std::string newStatus);
+        int changeThings_text(int id, std::string newText);
+
 };
 

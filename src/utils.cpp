@@ -23,6 +23,14 @@ unsigned int Utils::userInput_choice(unsigned int maxValue)
         std::getline(std::cin, input_str, '\n');
 
         bool interrupt = false;
+
+        if (input_str.length() == 0)
+        {
+            std::cout << "Input is not valid!" << std::endl;
+            continue;
+        }
+        
+
         for(const char c : input_str)
         {
             int c_int = static_cast<int>(c);
@@ -153,6 +161,34 @@ std::string Utils::userInput_date()
 
     return input;
 }
+
+unsigned int Utils::userInput_list(ThingsID ids)
+{
+    int input;
+
+    while(true)
+    {
+        input = Utils::userInput_choice(MAX_INT_VALUE);
+        for (auto i : ids.created)
+        {
+            if (input == i)
+            {
+                return input;
+            }
+        }
+
+        for (auto i : ids.assigned)
+        {
+            if (input == i)
+            {
+                return input;
+            }
+        }
+
+        std::cout << "ID Input is not valid" << std::endl;
+    }
+}
+
 
 void Utils::log(const std::string& message)
 {

@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS things_tb (
     user_id INTEGER,
     FOREIGN KEY(user_id) REFERENCES user_tb(user_id)
 );
-
+-- -------------------------------------------------------------------------------------
 -- Create event data table
 CREATE TABLE IF NOT EXISTS event_data_tb (
     things_id INTEGER PRIMARY KEY,

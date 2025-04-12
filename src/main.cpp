@@ -12,6 +12,9 @@
 #include "appReset.h"
 #include "DataManager.h"
 
+
+
+
 int beginAppReset()
 {
     AppReset ar;
@@ -22,6 +25,47 @@ int beginAppReset()
 
     return 0;
 }
+
+// -----------------------------------------------------------------------------------------------------------------------
+namespace doingSomething
+{
+    int editText(DataManager dm, int id)
+    {
+        std::cout << "Input new text:" << std::endl;
+        std::string newText = Utils::userInput_str();
+
+        return dm.changeThings_text(id, newText);
+    }
+
+    int setStatus(DataManager dm, int id)
+    {
+        std::string newStatus;
+        std::cout << "Change Status to:" << std::endl;
+        std::cout << "(1) Listed" << std::endl;
+        std::cout << "(2) Done" << std::endl;
+        std::cout << "(3) Canceled" << std::endl;
+
+        switch (Utils::userInput_choice(3))
+        {
+            case 1:
+                newStatus = "Listed";
+                break;
+            case 2:
+                newStatus = "Done";
+                break;
+            case 3:
+                newStatus = "Canceled";
+                break;
+            
+            default:
+                break;
+        }
+
+        return dm.changeThings_status(id, newStatus);
+    }
+
+}
+
 
 // -----------------------------------------------------------------------------------------------------------------------
 
@@ -140,21 +184,72 @@ void createNewThing(DataManager dm)
     
 }
 
-void displayThings(DataManager dm)
+void doSomethings(DataManager &dm, ThingsID ids)
 {
+    std::cout << std::endl;
+    std::cout << "DO someTHING" << std::endl;
+    std::cout << "Select Things to edit:" << std::endl;
+    int idToEdit = Utils::userInput_list(ids);
+
+
+    std::cout << "Select Action:" << std::endl
+                    << "(1) Edit Text" << std::endl
+                    << "(2) Set Status" << std::endl
+                    << "(3) Change Attribute" << std::endl
+                    << "(4) Change Type" << std::endl
+                    << "(5) Delete Things" << std::endl
+                    << "(6) Cancel" << std::endl;
+
+    switch (Utils::userInput_choice(6))
+    {
+    case 1:
+        if (doingSomething::editText(dm, idToEdit))
+            std::cout << "Edit Text Failed" << std::endl;
+        else
+            std::cout << "Edit Text Successful" << std::endl;
+            
+        break;
+    case 2:
+        if (doingSomething::setStatus(dm, idToEdit))
+            std::cout << "Set Status Failed" << std::endl;
+        else
+            std::cout << "Set Status Successful" << std::endl;
+
+        break;
+    case 3:
+        break;
+    case 4:
+        break;
+    case 5:
+        break;
+    case 6:
+        break;
+    
+    default:
+        break;
+    }
+}
+
+ThingsID displayThings(DataManager dm)
+{
+    ThingsID thingsid;
+
     std::cout << "CREATED ON THIS DAY:" << std::endl;
-    dm.pullThings_created();
+    thingsid.created = dm.pullThings_created();
     
     std::cout << std::endl;
     std::cout << "---" << std::endl;
     std::cout << "ASSIGNED FOR THIS DAY:" << std::endl;
-    dm.pullThings_assigned();
+    thingsid.assigned = dm.pullThings_assigned();
+
+    return thingsid;
 }
 
 void mainMenu(std::string username, std::string currentDate)
 {
     std::string date = currentDate;
     DataManager dm(username, date);
+    ThingsID currentDate_thingsId;
     bool menuShouldClose = false;
 
     while (!menuShouldClose)
@@ -163,7 +258,7 @@ void mainMenu(std::string username, std::string currentDate)
         std::cout << "Things List | Today, " << date << std::endl;
         std::cout << std::endl;
     
-        displayThings(dm);
+        currentDate_thingsId = displayThings(dm);
     
         std::cout << std::endl;
         std::cout << "---" << std::endl;
@@ -178,7 +273,7 @@ void mainMenu(std::string username, std::string currentDate)
         switch (Utils::userInput_choice(5))
         {
             case 1:
-                std::cout << "Do someThings" << std::endl;
+                doSomethings(dm, currentDate_thingsId);
                 break;
             case 2:
                 createNewThing(dm);
